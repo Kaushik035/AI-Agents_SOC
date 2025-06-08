@@ -1,0 +1,7 @@
+The Taj Mahal: A Timeless Symbol of Love and Architectural Grandeur
+
+The Taj Mahal, one of the most celebrated architectural marvels in the world, is situated in the city of Agra, India. Commissioned in 1632 by the Mughal Emperor Shah Jahan, the monument was built in memory of his beloved wife Mumtaz Mahal, symbolizing an eternal love that transcends time. Crafted from pristine white marble, the Taj Mahal is renowned for its exquisite symmetry, intricate inlays, and the striking interplay of light and shadow that enhances its ethereal beauty.
+
+The mausoleum is set amidst lush gardens that follow the charbagh layout, representing a Persian-style paradise garden. Four towering minarets frame the central dome, each with a slight outward tilt—a brilliant engineering technique to protect the main tomb in the event of a collapse. At sunrise and sunset, the Taj Mahal shimmers with different hues, reflecting the ever-changing light of the sky.
+
+Recognized as a UNESCO World Heritage Site in 1983, the Taj Mahal draws millions of visitors each year. Its poetic beauty and historical significance have secured its place as one of the Seven Wonders of the World, continuing to inspire awe and admiration centuries after its creation.
