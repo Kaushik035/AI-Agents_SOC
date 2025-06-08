@@ -19,5 +19,11 @@ def custom_chat_create(**kwargs):
         raise Exception(response.json())
     return response.json()
 
+""" json=kwargs tells requests to:
+
+Convert kwargs to a JSON string.
+
+Set the Content-Type header to application/json """
+
 # Override the OpenAI ChatCompletion.create method
 openai.ChatCompletion.create = custom_chat_create
