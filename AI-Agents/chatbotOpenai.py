@@ -1,4 +1,4 @@
-from newOpenAI import openai
+from shared.newOpenAI import openai
 
 
 def create_prompt(user_input):
