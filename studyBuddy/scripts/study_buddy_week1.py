@@ -1,8 +1,4 @@
-import os
-from dotenv import load_dotenv
 from shared.newOpenAI import openai
-
-load_dotenv()
 
 # Load the Markdown notes
 with open("studyBuddy/notes/my_notes.md", "r", encoding="utf-8") as f:
