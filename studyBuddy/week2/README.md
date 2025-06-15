@@ -18,7 +18,7 @@ The chatbot answers finance-related questions **based only on your provided note
 > PROXY_URL=https://socapi.deepaksilaych.me/student1
 
 
-(Run the 3rd command only if you haven't used earlier, if you used earlier you should be able to see a folder named 'shared' in your root directory)
+(Run the below 3rd command only if you haven't used earlier, if you used it earlier, you should be able to see a folder named 'shared.egg-info' in your root directory)
 ### 3. Install the shared package in editable mode:(This makes the shared/ module directly available to your script—no need for PYTHONPATH)
 
 > pip install -e .
