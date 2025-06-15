@@ -4,3 +4,8 @@ __pycache__/
 
 
 *.egg-info/
+
+# ChromaDB local persistence (auto-generated)
+chroma_store/
+# SQLite database (used internally by Chroma)
+*.sqlite3
