@@ -53,3 +53,47 @@ Response: I cannot find the answer in the provided notes.
 
 
 
+# Steps for assignment 2.1
+
+# 🤖 ChromaDB-Powered PDF Chatbot
+
+This project implements a Retrieval-Augmented Generation (RAG) chatbot using:
+
+- `sentence-transformers` for embedding document chunks
+- `ChromaDB` for storing and retrieving vector representations with metadata
+- `OpenAI GPT-3.5` to generate answers based on relevant document context
+
+The chatbot reads multiple PDFs, chunks them by paragraph, indexes them into a local vector store, and answers user questions — returning sources like:  
+**“Source: file2.pdf (page 3)”**
+
+## Running the code locally
+
+> Follow the first 3 step same as Assignment 2.1
+
+### 4. From the project root, run it:
+
+> python studyBuddy/week2/Assignment2.2/chromaDB_chatbot.py (can directly run using the Run button in vs code)
+
+- Pdf1 is essay on mango
+- Pdf2 is essay on Quantum Physics
+- Pdf3 is essay on IIT Bombay
+
+✅ Test Questions by PDF
+
+## From pdf1 – Mango Essay
+Why is mango called the king of fruits?
+
+What are the health benefits of eating mangoes?
+
+
+## From pdf2 – Quantum Physics Essay
+What is quantum entanglement and why did Einstein call it 'spooky action at a distance'?
+
+How does the Heisenberg Uncertainty Principle differ from classical physics?
+
+
+## From pdf3 – IIT Bombay Essay
+What are the major cultural and technical festivals at IIT Bombay?
+
+Why is IIT Bombay considered a leading institution in India?
+
