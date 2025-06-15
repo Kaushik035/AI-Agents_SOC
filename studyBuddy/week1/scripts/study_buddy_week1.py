@@ -1,7 +1,7 @@
 from shared.newOpenAI import openai
 
 # Load the Markdown notes
-with open("studyBuddy/notes/my_notes.md", "r", encoding="utf-8") as f:
+with open("studyBuddy/week1/notes/my_notes.md", "r", encoding="utf-8") as f:
     notes_content = f.read()
 
 # Prompt template
