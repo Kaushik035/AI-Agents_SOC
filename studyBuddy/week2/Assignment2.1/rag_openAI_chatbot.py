@@ -16,16 +16,17 @@ def load_and_chunk_document(file_path = "studyBuddy/week2/Assignment2.1/my_note.
         raise ValueError("The document is empty or contains only whitespace.")
 
     # Split by paragraphs (double newlines), as generally paragraphs are separated by a line break
-    chunks = text.split('\n\n')
+    chunks = text.split('\n\n') # This will split the text into chunks based on paragraphs,its a list of strings
+
     # Clean and filter chunks
-    chunks = [chunk.strip() for chunk in chunks if len(chunk.strip()) > 10]
+    chunks = [chunk.strip() for chunk in chunks if len(chunk.strip()) > 10] # Filter out chunks that are too short, it's a list of strings
     return chunks
 
 def generate_embeddings(chunks):
     # Load the embedding model
     embedder = SentenceTransformer('all-MiniLM-L6-v2')
     # Generate embeddings (returns a list of numpy arrays)
-    embeddings = embedder.encode(chunks, convert_to_numpy=True)
+    embeddings = embedder.encode(chunks, convert_to_numpy=True) # the chunks list is converted to its respective embeddings, which is a numpy array of shape (n_chunks, embedding_dimension)
     return embeddings , embedder
 
 def create_faiss_index(embeddings):
