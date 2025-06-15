@@ -2,10 +2,19 @@ from transformers import pipeline
 from sentence_transformers import SentenceTransformer
 import faiss
 import numpy as np
+import os
 
 def load_and_chunk_document(file_path):
+
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"File not found: {file_path}")
+
     with open(file_path, 'r', encoding='utf-8') as file:
         text = file.read()
+
+    if not text.strip():
+        raise ValueError("The document is empty or contains only whitespace.")
+
     # Split by paragraphs (double newlines), as generally paragraphs are separated by a line break
     chunks = text.split('\n\n')
     # Clean and filter chunks
@@ -79,6 +88,9 @@ def run_rag_chatbot(file_path):
     print("Welcome to the RAG Study Buddy! Type 'quit' to exit.")
     while True:
         question = input("You: ")
+        if not question.strip(): # Check for empty input
+            print("Please ask a valid question.")
+            continue
         if question.lower() == "quit":
             print("Goodbye!")
             break
