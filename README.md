@@ -9,10 +9,12 @@
 
 - It contains the week wise implementation of everything I learn.
 - Here I apply the concepts that I learn with some modifications.
-- It will be your intrested folder, If you want to see the final results.
+- It will be your interested folder, If you want to see the final results.
 
 
 # 📘 Summary of Work Across Weeks in the [studyBuddy](./studyBuddy/) folder
+
+
 
 ## 📅 Week 1 Summary: Introduction to Generative AI
 In Week 1, I explored the foundations of Generative AI and how to integrate it into applications.
