@@ -53,7 +53,7 @@ Response: I cannot find the answer in the provided notes.
 
 
 
-# Steps for assignment 2.1
+# Steps for assignment 2.2
 
 # 🤖 ChromaDB-Powered PDF Chatbot
 
