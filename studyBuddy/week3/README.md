@@ -2,6 +2,10 @@
 
 Check out the [Week 2 README here](../week2/README.md).
 
+- In addition, set your `TAVILY_API_KEY` in a `.env` file in the root folder.
+
+> TAVILY_API_KEY= "******************************"
+
 # Testing using various test cases
 
 ### 1. Tool Use: Tavily Search (Web Search API)
