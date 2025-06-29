@@ -100,7 +100,7 @@ In Week 3, I upgraded the basic RAG-based chatbot into a more powerful **AI Stud
 
 
 
-## 📅 Week 4 Summary: State Management,Tool Chaining
+## 📅 Week 4 Summary: State Management,Tool Chaining, Persona Engineering
 
 In **Week 4**, I modularized and upgraded the Study Buddy chatbot into a more intelligent assistant with **stateful memory**, **optimized context**, and **entity awareness** using `spaCy` and `tiktoken`.
 
@@ -200,6 +200,56 @@ The function `detect_intent(query)` determines the intent and triggers the corre
 
 This logic keeps the **orchestration clean, adaptive, and scalable**.
 
+
+## Persona Engineering
+
+
+
+### 🗣️ 1. Response Style Conditioning
+- Adjusts tone based on inferred `user_level` (e.g., `high_school`, `grad_student`, `expert`).
+- Uses soft rules and heuristics to simplify or enrich responses.
+- Automatically adapts based on user queries and context.
+
+```python
+def infer_user_level(text: str) -> str
+```
+
+### 📚 2. Domain-Specific Language Modeling
+
+This module adapts the assistant's language to match the **subject domain** of the user's query — ensuring correct vocabulary, terminology, and examples.
+
+#### ✅ How It Works
+- **Keyword Matching**: Checks for domain-specific terms (e.g., `algorithm`, `photosynthesis`, `equation`).
+- **🧠 Embedding-Based Detection**: Uses `sentence-transformers` to compare the query to known domain labels (e.g., `physics`, `cs`, `history`) via cosine similarity.
+- **Domain Prompts**: Each detected domain injects a custom system prompt that guides the assistant's tone and accuracy.
+
+#### 🔍 Domain Detection Function
+
+```python
+def detect_domain(query: str) -> str:
+  ```
+
+
+### 🔒 3. Ethical Guardrails & Safety
+
+This module ensures the assistant avoids harmful, biased, or offensive outputs by performing a layered compliance check.
+
+#### ✅ How It Works
+- **AI-Based Moderation**: Uses [Detoxify](https://github.com/unitaryai/detoxify) to scan text for:
+  - Toxicity
+  - Identity attacks
+  - Severe insults
+- **Fallback Checks**:
+  - Matches hardcoded `SENSITIVE_TERMS`
+  - Flags biased language like "superior race", "better than"
+- **Logging**:
+  - Every flagged response is appended to `guardrail_log.txt` for audit and analysis
+
+#### 🔍 Guardrail Check Function
+
+```python
+def check_ethical_compliance(text: str) -> Tuple[bool, str]:
+  ```
 
 ---
 
