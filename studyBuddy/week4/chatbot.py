@@ -14,6 +14,7 @@ from state_management import (
     get_entity_context,
     get_optimized_context,
     summarize_history,
+    save_history,
     conversation_history,
     entities,
 )
@@ -148,8 +149,15 @@ def run_chatbot():
         answer = call_openai(query, context, rag_notes, tool_output)
         print("\nAssistant:", answer, "\n")
 
-        # 8. Save assistant reply
-        add_to_history("assistant", answer)
+        # 8. Conditionally store assistant reply
+        if answer.strip() == "I cannot find the answer in the provided notes or tools.":
+            # Remove last user message too
+            if conversation_history and conversation_history[-1]["role"] == "user":
+                conversation_history.pop()
+                save_history()
+        else:
+            add_to_history("assistant", answer)
+
 
 
 if __name__ == "__main__":
