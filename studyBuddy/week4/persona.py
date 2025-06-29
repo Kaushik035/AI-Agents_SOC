@@ -73,7 +73,7 @@ def _domain_by_embedding(query: str) -> str:
     sims = np.dot(_domain_vectors, vec) / (
         np.linalg.norm(_domain_vectors, axis=1) * np.linalg.norm(vec) + 1e-8
     )
-    print(f"Embedding similarities: {sims}")
+    # print(f"Embedding similarities: {sims}")
     best_idx = int(np.argmax(sims))
     if sims[best_idx] > 0.20:  # heuristic threshold
         return _domain_labels[best_idx]
@@ -138,7 +138,7 @@ def build_persona_system_prompt(query: str, user_level: str | None = None) -> st
     print(f"Detected domain: {domain} ")
     domain_block = DOMAIN_PROMPTS.get(domain, "")
     level = user_level or infer_user_level(query)
-    print(f"Inferred user level: {level} ")
+    # print(f"Inferred user level: {level} ")
     style_block = STYLE_GUIDELINES.get(level, STYLE_GUIDELINES["high_school"])
 
     return f"{SYSTEM_PROMPT_BASE}\n{domain_block}\nAdditional instructions: {style_block}"
@@ -176,7 +176,7 @@ def check_ethical_compliance(text: str) -> Tuple[bool, str]:
     """
     if _detox:
         scores = _detox.predict(text)
-        print(f"Detoxify scores: {scores}")
+        # print(f"Detoxify scores: {scores}")
         if scores.get("toxicity", 0) > 0.4:
             _log_flag("Detoxify toxicity > 0.4", text)
             return False, "Potentially toxic content"
