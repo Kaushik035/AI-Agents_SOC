@@ -9,3 +9,5 @@ __pycache__/
 chroma_store/
 # SQLite database (used internally by Chroma)
 *.sqlite3
+
+*.json
