@@ -97,3 +97,40 @@ In Week 3, I upgraded the basic RAG-based chatbot into a more powerful **AI Stud
 ### 📄 Detailed implementation and setup can be found in the [Week 3 README](./studyBuddy/week3/README.md).
 
 ---
+
+
+
+## 📅 Week 4 Summary: State Management, Entity Tracking & Smarter Context
+
+In **Week 4**, I modularized and upgraded the Study Buddy chatbot into a more intelligent assistant with **stateful memory**, **optimized context**, and **entity awareness** using `spaCy` and `tiktoken`.
+
+
+
+### 🧠 State Management Features Implemented
+
+- **Persistent History**:
+  - Conversation history is saved to and loaded from `conversation_history.json`.
+  - Each message includes `role`, `content`, and `timestamp`.
+
+- **Token-Aware Context Window** using `tiktoken`:
+  - Dynamically selects messages that fit within a max token budget (e.g., 1200 tokens).
+  - Prioritizes recent + relevant messages.
+
+- **Relevant History Retrieval**:
+  - Uses keyword overlap with current query to fetch past messages that match contextually.
+  - Scores and returns top N overlaps.
+
+- **Deduplication** of context:
+  - Avoids repeated messages by de-duping based on content before LLM call.
+
+- **Entity Tracking with `spaCy`**:
+  - Named entities (like *Einstein*, *MRI*, *Quantum Tunneling*) are extracted on each user query.
+  - Context around the entity is stored and recalled later if reused in a query.
+
+- **Context Summarization**:
+  - Once history grows beyond 10 turns, a concise summary is generated using OpenAI.
+  - Injected as a `system` message in future prompts.
+
+---
+
+
