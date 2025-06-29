@@ -19,6 +19,13 @@ from state_management import (
     entities,
 )
 
+USER_LEVEL = "high_school"
+
+from persona import (
+    build_persona_system_prompt,
+    check_ethical_compliance,      
+)
+
 #  ░░  RAG core – helper functions
 def load_and_chunk_document(file_path="studyBuddy/week4/notes/my_note.md"):
     """Load notes and split into non-empty paragraphs."""
@@ -57,28 +64,38 @@ def retrieve_chunks(question, embedder, index, chunks, k=2):
     return [chunks[i] for i in ids[0]]
 
 
-#  ░░  OpenAI wrapper 
 def call_openai(query, context_msgs, rag_notes, tool_output):
     """
-    Build messages list and call OpenAI.
+    Build messages list and call OpenAI, injecting
+      • persona-aware system prompt
+      • RAG notes
+      • tool output
     """
-    messages = [{"role": m["role"], "content": m["content"]} for m in context_msgs]
+    #1 build persona system prompt (domain + style)
+    persona_prompt = build_persona_system_prompt(query, USER_LEVEL)
 
-    system_prompt = (
+    #2 assemble message list
+    messages = [{"role": "system", "content": persona_prompt}]
+    messages += [{"role": m["role"], "content": m["content"]} for m in context_msgs]
+
+    # evidence block
+    evidence_block = (
         f"Relevant notes:\n{rag_notes}\n\n"
         f"External tool output:\n{tool_output}\n\n"
         "Answer the user's question clearly. "
         'If the notes and tool output do not provide enough information, say '
         '"I cannot find the answer in the provided notes or tools."'
     )
-    messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "system", "content": evidence_block})
     messages.append({"role": "user", "content": query})
 
+    #3 call OpenAI
     response = openai.ChatCompletion.create(
         model="gpt-3.5-turbo",
         messages=messages,
     )
     return response["choices"][0]["message"]["content"]
+
 
 
 def run_chatbot():
@@ -147,6 +164,14 @@ def run_chatbot():
 
         # 7. Call OpenAI with full context
         answer = call_openai(query, context, rag_notes, tool_output)
+
+        # 7-a. Ethical compliance check
+        ok, msg = check_ethical_compliance(answer)
+        if not ok:
+            answer = (
+                "⚠️ Sorry, I can’t provide that response due to ethical concerns "
+                f"({msg}). Please rephrase your question."
+            )
         print("\nAssistant:", answer, "\n")
 
         # 8. Conditionally store assistant reply
