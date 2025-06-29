@@ -11,3 +11,4 @@ chroma_store/
 *.sqlite3
 
 *.json
+*.txt
