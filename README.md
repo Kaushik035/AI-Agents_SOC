@@ -100,13 +100,13 @@ In Week 3, I upgraded the basic RAG-based chatbot into a more powerful **AI Stud
 
 
 
-## 📅 Week 4 Summary: State Management, Entity Tracking & Smarter Context
+## 📅 Week 4 Summary: State Management,Tool Chaining
 
 In **Week 4**, I modularized and upgraded the Study Buddy chatbot into a more intelligent assistant with **stateful memory**, **optimized context**, and **entity awareness** using `spaCy` and `tiktoken`.
 
 
 
-### 🧠 State Management Features Implemented
+## 🧠 State Management Features Implemented
 
 - **Persistent History**:
   - Conversation history is saved to and loaded from `conversation_history.json`.
@@ -130,6 +130,76 @@ In **Week 4**, I modularized and upgraded the Study Buddy chatbot into a more in
 - **Context Summarization**:
   - Once history grows beyond 10 turns, a concise summary is generated using OpenAI.
   - Injected as a `system` message in future prompts.
+
+
+
+## 🛠 Tool Chaining (Multi-Step Tool Execution)
+
+The system includes a **modular and resilient tool chaining pipeline**, designed to orchestrate multiple tools like Wikipedia, Tavily, and a calculator in a logical sequence. It supports input/output dependency resolution, conditional execution, and fallback handling — enabling a wide range of queries like:
+
+> 🧠 _“What is 3 times the population of France?”_  
+> 📈 _“Search the latest news on electric vehicles”_  
+> ➕ _“Calculate 7 + 3?”_
+
+We follow four key design principles:
+
+---
+
+### ✅ 1. Sequential Tool Execution
+
+We define multi-step tool chains (e.g., `calc_with_lookup`) in a fixed order:
+- First, extract numeric multiplier and subject (`France`, `population`)
+- Query Wikipedia to get a base number (e.g., 67 million)
+- Run calculation: `3 × 67 million`
+
+This is implemented in:
+```python
+def run_tool_chain(query: str) -> str
+```
+
+---
+
+### ✅ 2. Output Validation and Error Recovery
+
+Each tool result (e.g., Wikipedia summary or calculator output) is **validated** before further use.
+
+If the output is missing, ambiguous, or non-numeric:
+
+- ❌ The chain halts
+- 🧾 A clear error message is returned
+- 🧠 If needed, it falls back to a direct OpenAI call using:
+
+```python
+def fallback_openai(query: str) -> str
+```
+
+### ✅ 3. Dependency Management Between Tools
+
+In chained flows like `calc_with_lookup`:
+
+- The output of Wikipedia (e.g., `"The population of France is 67 million"`)
+- Is parsed using `extract_first_number()`
+- And passed as input to the calculator
+
+This ensures **clean data flow**, similar to a Unix-style pipeline:
+
+```text
+Wikipedia → Extract Number → Calculator → Final Result
+```
+
+### ✅ 4. Conditional Execution
+
+The function `detect_intent(query)` determines the intent and triggers the correct tool:
+
+| Sample Query                          | Tool Chain Triggered                      |
+|--------------------------------------|-------------------------------------------|
+| "Search the latest news on EVs"      | `tavily_search`                           |
+| "GDP of Brazil times 5"              | `wikipedia → extract → calculate`         |
+| "What is 11 + 7 / 2?"                | `calculator` only                         |
+| "Who was Srinivasa Ramanujan?"       | `wikipedia` only                          |
+
+This logic keeps the **orchestration clean, adaptive, and scalable**.
+
 
 ---
 
