@@ -196,7 +196,6 @@ def run_tool_chain(query: str) -> str:
     if intent == "search":
         try:
             answer = tavily_search(query)
-            print(f"Tavily search result: {answer}")
             return answer
         except Exception as e:
             return f"[Tavily failed: {e}] " + fallback_openai(query)
