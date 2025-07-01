@@ -101,42 +101,57 @@ _VAGUE_PHRASES = re.compile(
     r"(i (am|\'m) not sure|cannot find|no answer|maybe|might be)", re.I
 )
 
-def _confidence(resp: str, query: str, origin: str = "LLM") -> float:
+
+def _confidence(
+    resp: str,
+    query: str,
+    *,
+    origin: str = "LLM",
+    conv_context: str = ""
+) -> float:
     """
-    Composite score in [0,1].
-       • 50 % semantic cosine similarity
-       • 25 % keyword overlap
-       • 15 % ‘reasonable length’ bonus   (50–250 words ≈ full credit)
-       • 10 % clarity / no-error bonus
+    Composite score ∈ [0‥1].
+
+       • 35 % semantic sim  (answer ↔ query)
+       • 15 % semantic sim  (answer ↔ recent-context)
+       • 25 % keyword overlap (answer ↔ query)
+       • 15 % ‘reasonable length’ bonus   (50–250 words ⇢ full credit)
+       • 10 % clarity / no-red-flags bonus
     """
     score = 0.0
 
-    # 1 semantic similarity (50 %)
-    qe = _embedder.encode(query, convert_to_tensor=True, normalize_embeddings=True)
-    re_ = _embedder.encode(resp,  convert_to_tensor=True, normalize_embeddings=True)
-    sim = max(0.0, float(util.cos_sim(qe, re_)[0][0]))       # clip negatives
-    score += 0.50 * sim
+    #  1-a  answer ↔ query  (25 %)
+    q_emb  = _embedder.encode(query,        convert_to_tensor=True, normalize_embeddings=True)
+    a_emb  = _embedder.encode(resp,         convert_to_tensor=True, normalize_embeddings=True)
+    sim_q  = float(util.cos_sim(q_emb, a_emb)[0][0])
+    score += 0.25 * max(sim_q, 0.0)
 
-    # 2 keyword overlap (25 %)
+    # 1-b  answer ↔ convo-context  (25 %)
+    if conv_context:
+        c_emb  = _embedder.encode(conv_context, convert_to_tensor=True, normalize_embeddings=True)
+        sim_c  = float(util.cos_sim(c_emb, a_emb)[0][0])
+        score += 0.25 * max(sim_c, 0.0)
+
+    # 2  keyword overlap  (25 %)
     q_set = set(re.findall(r"\w+", query.lower()))
-    r_set = set(re.findall(r"\w+", resp.lower()))
-    overlap = len(q_set & r_set) / max(len(q_set), 1)
-    score += 0.25 * overlap
+    a_set = set(re.findall(r"\w+", resp.lower()))
+    kv_overlap = len(q_set & a_set) / max(len(q_set), 1)
+    score += 0.25 * kv_overlap
 
-    # 3 length bonus (15 %)
+    # 3  length bonus  (15 %)
     words = len(resp.split())
     if 50 <= words <= 250:
         length_bonus = 1.0
     else:
-        # linearly fall off; 0 at <20 or >400 words
-        length_bonus = max(0.0, 1 - abs(words - 150) / 300)
+        length_bonus = max(0.0, 1 - abs(words - 150) / 300)   # linear fall-off
     score += 0.15 * length_bonus
 
-    # 4 clarity / no-red-flags (10 %)
+    # 4  clarity / no red-flags  (10 %)
     if not _VAGUE_PHRASES.search(resp) and "error" not in resp.lower():
         score += 0.10
 
-    return round(min(max(score, 0.0), 1.0), 3)
+    return round(min(score, 1.0), 3)
+
 
 
 #  LLM-based tie-breaker (quick rubric 0–10)
@@ -162,7 +177,6 @@ def _llm_grade(query: str, answer: str) -> float:
 def _needs_self_correction(query: str, answer: str) -> bool:
     q = query.lower()
     trig_words = (
-        "why", "how", "prove", "derive", "step", "explain",
         "+", "-", "*", "/", "integral", "solve", "equation"
     )
     #reasoning-triggering keywords
@@ -193,7 +207,7 @@ def reasoned_answer(
     """
     sys_prompt = build_persona_system_prompt(query, user_level)
 
-    # ── build candidate list ─────────────────────────────────────
+    # ── build candidate list 
     candidates: List[Tuple[str, str]] = []
 
     # A) RAG + Tool evidence
@@ -228,16 +242,29 @@ def reasoned_answer(
     )
     candidates.append(("General-LLM", general_ans))
 
-    # ── score & choose ───────────────────────────────────────────
+    # just before the scoring loop
+    conv_ctx_text = "\n".join(m["content"] for m in context_msgs)  # recent+relevant slice
+
+    # replace the list-comprehension that builds `scored`
     scored = [
-        (label, ans, _confidence(ans, query, origin=label))
+        (
+            label,
+            ans,
+            _confidence(
+                ans,
+                query,
+                origin=label,
+                conv_context=conv_ctx_text      # NEW: adds context similarity
+            ),
+        )
         for label, ans in candidates
     ]
+
     print("Candidate scores:", scored)
     # highest heuristic score
     best_label, best_ans, best_score = max(scored, key=lambda t: t[2])
 
-    # ── OPTIONAL TIE-BREAKER when tool-only is on top ──────────────
+    # ── OPTIONAL TIE-BREAKER when tool-only is on top
     if best_label in {"Tool-only", "Tavily"}:
         # find best *non-tool* candidate for comparison
         non_tool = sorted(
@@ -261,13 +288,14 @@ def reasoned_answer(
                     _confidence(alt_ans, query, origin=alt_label),
                 )
 
-    # ── self-correct ──────────────────────────────────────────────
+
+    # ── self-correct
     if _needs_self_correction(query, best_ans):
         corrected = self_correct_response(query, best_ans, context_msgs, user_level)
     else:
-        corrected = best_ans    # skip extra round-trip
+        corrected = best_ans
 
-    # ── ethical guard-rail ────────────────────────────────────────
+    # ── ethical guard-rail
     compliant, msg = check_ethical_compliance(corrected)
     if not compliant:
         return (
