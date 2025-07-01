@@ -251,6 +251,47 @@ This module ensures the assistant avoids harmful, biased, or offensive outputs b
 def check_ethical_compliance(text: str) -> Tuple[bool, str]:
   ```
 
+
+  ## Reasoning Framework 
+
+
+
+## 🧩 Key Components
+
+### 1. Plan-Execute-Refine (PER) Strategy
+
+A three-stage reasoning pipeline:
+
+- **Plan** – Generate a step-by-step plan for solving the query.
+- **Execute** – Follow the plan to generate a detailed answer.
+- **Refine** – Review and rewrite for clarity, correctness, and completeness.
+
+> ✅ Use PER for procedural queries like *how*, *why*, *derive*, or *solve*.
+
+
+### 2. Candidate Answer Generation
+
+Each query runs through multiple answer generators:
+
+- **RAG + Tool**: Combines retrieved notes and external tool output.
+- **Plan-Execute-Refine**: For multi-step reasoning tasks.
+- **Tool-only**: Uses tool outputs directly if available.
+- **General-LLM**: Pure LLM fallback answer.
+
+
+### 3. Confidence Scoring
+
+Each answer is evaluated via a custom scoring function `_confidence()`:
+
+```python
+score = 0.5 * semantic_similarity(query, response) \
+      + 0.3 * keyword_overlap(query, response) \
+      + 0.2 * no_error_flags(response)
+
+if origin in TOOL_DOMAINS:
+    if len(response.split()) < 60: score += 0.15
+    if overlap > 0.5: score += 0.15
+```
 ---
 
 
