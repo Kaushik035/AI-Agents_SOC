@@ -5,7 +5,8 @@ from sentence_transformers import SentenceTransformer
 from shared.newOpenAI import openai
 
 # Tool-chaining API (handles validation + dependency management)
-from tools_chain import run_tool_chain, fallback_openai
+from tools_chain import run_tool_chain
+from reasoning_framework import reasoned_answer
 
 from state_management import (
     load_history,
@@ -62,39 +63,6 @@ def retrieve_chunks(question, embedder, index, chunks, k=2):
     question_vec, _ = embedder.encode([question], convert_to_numpy=True), None
     _, ids = index.search(question_vec, k)
     return [chunks[i] for i in ids[0]]
-
-
-def call_openai(query, context_msgs, rag_notes, tool_output):
-    """
-    Build messages list and call OpenAI, injecting
-      • persona-aware system prompt
-      • RAG notes
-      • tool output
-    """
-    #1 build persona system prompt (domain + style)
-    persona_prompt = build_persona_system_prompt(query, USER_LEVEL)
-
-    #2 assemble message list
-    messages = [{"role": "system", "content": persona_prompt}]
-    messages += [{"role": m["role"], "content": m["content"]} for m in context_msgs]
-
-    # evidence block
-    evidence_block = (
-        f"Relevant notes:\n{rag_notes}\n\n"
-        f"External tool output:\n{tool_output}\n\n"
-        "Answer the user's question clearly. "
-        'If the notes and tool output do not provide enough information, say '
-        '"I cannot find the answer in the provided notes or tools."'
-    )
-    messages.append({"role": "system", "content": evidence_block})
-    messages.append({"role": "user", "content": query})
-
-    #3 call OpenAI
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-    )
-    return response["choices"][0]["message"]["content"]
 
 
 
@@ -162,20 +130,18 @@ def run_chatbot():
         if chunks and embedder and index:
             rag_notes = "\n\n".join(retrieve_chunks(query, embedder, index, chunks))
 
-        # 7. Call OpenAI with full context
-        answer = call_openai(query, context, rag_notes, tool_output)
-
-        # 7-a. Ethical compliance check
-        ok, msg = check_ethical_compliance(answer)
-        if not ok:
-            answer = (
-                "⚠️ Sorry, I can’t provide that response due to ethical concerns "
-                f"({msg}). Please rephrase your question."
-            )
-        print("\nAssistant:", answer, "\n")
+        #  7. Get final answer via reasoning framework
+        answer = reasoned_answer(
+            query,
+            context,
+            rag_notes,
+            tool_output,
+            USER_LEVEL,
+        )
+        print(f"Assistant: {answer}\n")
 
         # 8. Conditionally store assistant reply
-        if answer.strip() == "I cannot find the answer in the provided notes or tools.":
+        if "I cannot find the answer in the provided notes or tools" in answer.lower().strip():
             # Remove last user message too
             if conversation_history and conversation_history[-1]["role"] == "user":
                 conversation_history.pop()
