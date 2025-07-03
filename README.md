@@ -100,9 +100,9 @@ In Week 3, I upgraded the basic RAG-based chatbot into a more powerful **AI Stud
 
 
 
-## 📅 Week 4 Summary: State Management,Tool Chaining, Persona Engineering
+## 📅 Week 4 Summary: State Management,Tool Chaining, Persona Engineering, Reasoning Framework
 
-In **Week 4**, I modularized and upgraded the Study Buddy chatbot into a more intelligent assistant with **stateful memory**, **optimized context**, and **entity awareness** using `spaCy` and `tiktoken`.
+In **Week 4**, I modularized and upgraded the Study Buddy chatbot into a more intelligent assistant with **stateful memory**, **optimized context**, and **entity awareness** using `spaCy` and `tiktoken`, implemented **tool chaining**, **persona engineering**, **reasoning framework**
 
 
 
@@ -292,6 +292,9 @@ if origin in TOOL_DOMAINS:
     if len(response.split()) < 60: score += 0.15
     if overlap > 0.5: score += 0.15
 ```
+
+### 📄 Detailed implementation and setup can be found in the [Week 4 README](./studyBuddy/week4/README.md).
+
 ---
 
 
