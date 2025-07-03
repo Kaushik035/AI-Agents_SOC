@@ -176,7 +176,7 @@ def check_ethical_compliance(text: str) -> Tuple[bool, str]:
     """
     if _detox:
         scores = _detox.predict(text)
-        # print(f"Detoxify scores: {scores}")
+        print(f"Detoxify scores: {scores.get('toxicity', 0):.2f}")
         if scores.get("toxicity", 0) > 0.45:
             _log_flag("Detoxify toxicity > 0.4", text)
             return False, "Potentially toxic content"

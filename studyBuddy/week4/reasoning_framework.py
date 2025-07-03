@@ -173,21 +173,37 @@ def _llm_grade(query: str, answer: str) -> float:
         return 5.0
 
 
-#  Tiny gating heuristic: do we need a self-check?
-def _needs_self_correction(query: str, answer: str) -> bool:
+
+_TOOL_LIKE = {"Tool-only", "Tavily", "Wikipedia", "Calculator"}
+
+def _needs_self_correction(
+    query: str,
+    answer: str,
+    origin: str = "LLM",          # <–– pass the label
+) -> bool:
+    """
+    Return True only when self-check is valuable.
+
+    • Skip for short tool answers (<= 80 words)  
+    • Otherwise use the old heuristics.
+    """
+    # ── 0. Short, tool-sourced answers are assumed trustworthy
+    if origin in _TOOL_LIKE and len(answer.split()) <= 80:
+        return False
+
     q = query.lower()
-    trig_words = (
-        "+", "-", "*", "/", "integral", "solve", "equation"
+    trig = (
+        "+", "-", "*", "/", "integral", "solve", "equation",
+        "derive", "proof",
     )
-    #reasoning-triggering keywords
-    if any(w in q for w in trig_words):
+    if any(w in q for w in trig):
         return True
-    # long or numeric answer
     if len(answer.split()) > 120:
         return True
-    if re.search(r"\d", answer):           # contains a digit
+    if re.search(r"\d", answer):
         return True
     return False
+
 
 
 
@@ -214,6 +230,7 @@ def reasoned_answer(
     evidence_block = (
         f"Relevant notes:\n{rag_notes}\n\n"
         f"External tool output:\n{tool_output or '—'}\n\n"
+        "The tool output is very important to take care of when the user is asking questions about some latest news or to search in the web.\n\n"
         "Answer the user's question clearly."
         
     )
@@ -264,9 +281,27 @@ def reasoned_answer(
     # highest heuristic score
     best_label, best_ans, best_score = max(scored, key=lambda t: t[2])
 
+
+
+    print(f"Best candidate: {best_label} (score {best_score:.2f})")
+
+    if "i don't have real-time" in best_ans.lower():
+        print("Primary answer lacks real-time info. Falling back...")
+        fallback = sorted(
+            [t for t in scored if t[0] != best_label],
+            key=lambda t: t[2],
+            reverse=True
+        )
+        if fallback:
+            fb_label, fb_ans, fb_score = fallback[0]
+            best_label, best_ans, best_score = fb_label, fb_ans, fb_score
+            print(f"Fallback used: {fb_label} (score {fb_score:.2f})")
+
+    print("Best answer:", best_ans[:100] + "...")  # show first 100 chars
     # ── OPTIONAL TIE-BREAKER when tool-only is on top
     if best_label in {"Tool-only", "Tavily"}:
         # find best *non-tool* candidate for comparison
+        print("Tool-based answer selected, checking alternatives...")
         non_tool = sorted(
             [t for t in scored if t[0] not in {"Tool-only", "Tavily"}],
             key=lambda t: t[2],
@@ -290,7 +325,8 @@ def reasoned_answer(
 
 
     # ── self-correct
-    if _needs_self_correction(query, best_ans):
+    if _needs_self_correction(query, best_ans, origin=best_label):
+        print("Self-correction needed for:", best_label)
         corrected = self_correct_response(query, best_ans, context_msgs, user_level)
     else:
         corrected = best_ans
