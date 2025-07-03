@@ -285,7 +285,7 @@ def reasoned_answer(
 
     print(f"Best candidate: {best_label} (score {best_score:.2f})")
 
-    if "i don't have real-time" in best_ans.lower():
+    if "i don't " in best_ans.lower() or "i can't" in best_ans.lower():
         print("Primary answer lacks real-time info. Falling back...")
         fallback = sorted(
             [t for t in scored if t[0] != best_label],
